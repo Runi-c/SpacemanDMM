@@ -821,8 +821,22 @@ impl<'a> ConstantFolder<'a> {
         integer!(BitOr |);
         integer!(BitAnd &);
         integer!(BitXor ^);
-        integer!(LShift <<);
-        integer!(RShift >>);
+        match (op, lhs, rhs) {
+            (BinaryOp::LShift, Float(lhs), Float(rhs)) => {
+                return Ok(Constant::from_bit_op(
+                    (lhs as u32).unbounded_shl(rhs as u32),
+                ))
+            },
+            (BinaryOp::RShift, Float(lhs), Float(rhs)) => {
+                return Ok(Constant::from_bit_op(
+                    (lhs as u32).unbounded_shr(rhs as u32),
+                ))
+            },
+            (_, lhs_, rhs_) => {
+                lhs = lhs_;
+                rhs = rhs_;
+            },
+        }
 
         match (op, lhs, rhs) {
             (BinaryOp::Add, String(lhs), String(rhs)) => {
